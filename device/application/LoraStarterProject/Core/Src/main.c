@@ -18,12 +18,14 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "usart.h"
 #include "tim.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdint.h>
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -38,13 +40,14 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+#define MAIN_LPUART_BUFFER_MAXLEN	(128)
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+static uint8_t g_main_lpuart_buffer[MAIN_LPUART_BUFFER_MAXLEN] = {0U};
+static uint32_t g_main_lpuart_buffer_len = 0U;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -88,10 +91,15 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM15_Init();
+  MX_LPUART1_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1U);
 
   HAL_TIM_Base_Start_IT(&htim15);
+
+  // Send Message To Debug UART
+  g_main_lpuart_buffer_len = sprintf(&g_main_lpuart_buffer[0], "Hello\r\n");
+  HAL_UART_Transmit(&hlpuart1, &g_main_lpuart_buffer[0], g_main_lpuart_buffer_len, 100U);
 
   /* USER CODE END 2 */
 

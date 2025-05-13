@@ -21,22 +21,23 @@ Adafruit RFM95W LoRa [https://www.adafruit.com/product/3072](https://www.adafrui
 4MHz HSE
 32.768kHz LSE
 
-### IO Ports
-LED (PC12)
+### Pin Configurations
++ LED (PC12)
 
 Debug RS232 
-LP_RS232_RXD => LPUART_RX (PB10)
-LP_RS232_TXD => LPUART_TX (PB11)
++ LP_RS232_RXD => LPUART_RX (PB10)
++ LP_RS232_TXD => LPUART_TX (PB11)
 
 Modem/Serial RS232
-RS232_RXD => UART_RX (PA10)
-RS232_TXD => UART_TX (PA9)
++ RS232_RXD => UART_RX (PA10)
++ RS232_TXD => UART_TX (PA9)
 
 ## Timers
 TIM15 80Mhz Clock. /1000 prescaler. 4000-1 counter value. Result == 2Hz. 
 Calling HAL_TIM_PeriodElapsedCallback to Toggle LED.
 
-
+## UARTS
+LPUART1 115200N8 baud.
 
 
  
