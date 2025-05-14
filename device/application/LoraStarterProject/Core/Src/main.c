@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "usart.h"
+#include "spi.h"
 #include "tim.h"
 #include "gpio.h"
 
@@ -92,6 +93,7 @@ int main(void)
   MX_GPIO_Init();
   MX_TIM15_Init();
   MX_LPUART1_UART_Init();
+  MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1U);
 

@@ -57,6 +57,12 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define RFM95W_EN_Pin GPIO_PIN_0
+#define RFM95W_EN_GPIO_Port GPIOA
+#define RFM95W_G0_Pin GPIO_PIN_2
+#define RFM95W_G0_GPIO_Port GPIOA
+#define RFM95W_RST_Pin GPIO_PIN_3
+#define RFM95W_RST_GPIO_Port GPIOA
 #define LED_Pin GPIO_PIN_12
 #define LED_GPIO_Port GPIOC
 
