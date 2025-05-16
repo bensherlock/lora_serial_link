@@ -14,13 +14,11 @@
  * Includes
  */
 #include "rfm95w.h"
-
-#include "usart.h"
+#include "dbg_output.h"
 
 #include "stm32l4xx_hal.h"
 #include "stm32l4xx_hal_gpio.h"
 #include "stm32l4xx_hal_spi.h"
-#include "stm32l4xx_hal_uart.h"
 
 #include <stdint.h>
 
@@ -319,7 +317,7 @@ static SPI_HandleTypeDef* g_spi_handle = 0;		/*!< SPI Handle */
 static volatile uint8_t g_regval = 0;
 
 static volatile uint8_t g_receive_buffer[MAX_SPI_BUFFER_LENGTH] = {0};
-static volatile uint32_t g_receive_buffer_length = 0;
+static volatile uint8_t g_receive_buffer_length = 0;
 static volatile uint8_t g_packet_received = 0;
 
 /*
@@ -651,7 +649,7 @@ int32_t rfm95w_process_interrupt()
 	{
 		g_packet_received = 1;
 
-		HAL_UART_Transmit(&hlpuart1, &g_receive_buffer[0], g_receive_buffer_length, 100U);
+		dbg_output_write_buffer(g_receive_buffer_length, &g_receive_buffer[0]);
 	}
 
 	 // start listening

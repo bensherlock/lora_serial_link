@@ -28,7 +28,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include "dbg_output.h"
 #include "rfm95w.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -101,15 +103,19 @@ int main(void)
 
   HAL_TIM_Base_Start_IT(&htim15);
 
+  dbg_output_init(&hlpuart1);
+
   // Send Message To Debug UART
+  dbg_output_write_str("HelloWorld\r\n");
   g_main_lpuart_buffer_len = sprintf(&g_main_lpuart_buffer[0], "HelloWorld\r\n");
-  HAL_UART_Transmit(&hlpuart1, &g_main_lpuart_buffer[0], g_main_lpuart_buffer_len, 100U);
+  //HAL_UART_Transmit(&hlpuart1, &g_main_lpuart_buffer[0], g_main_lpuart_buffer_len, 100U);
 
   // Initialise the RFM95W
   rfm95w_init(&hspi1);
 
 
   // Send Test Packet
+  g_main_lpuart_buffer_len = sprintf(&g_main_lpuart_buffer[0], "HelloWorld\r\n");
   rfm95w_transmit_packet(g_main_lpuart_buffer_len, &g_main_lpuart_buffer[0]);
 
   // start listening
