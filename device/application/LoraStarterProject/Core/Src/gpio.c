@@ -51,13 +51,19 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, RFM95W_EN_Pin|RFM95W_RST_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, RFM95W_EN_Pin|RFM95W_CS_Pin, GPIO_PIN_SET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(RFM95W_RST_GPIO_Port, RFM95W_RST_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(PWR_SW2_GPIO_Port, PWR_SW2_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pins : RFM95W_EN_Pin RFM95W_RST_Pin */
-  GPIO_InitStruct.Pin = RFM95W_EN_Pin|RFM95W_RST_Pin;
+  /*Configure GPIO pins : RFM95W_EN_Pin RFM95W_RST_Pin RFM95W_CS_Pin */
+  GPIO_InitStruct.Pin = RFM95W_EN_Pin|RFM95W_RST_Pin|RFM95W_CS_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -69,12 +75,23 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(RFM95W_G0_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : PWR_SW2_Pin */
+  GPIO_InitStruct.Pin = PWR_SW2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(PWR_SW2_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pin : LED_Pin */
   GPIO_InitStruct.Pin = LED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(LED_GPIO_Port, &GPIO_InitStruct);
+
+  /* EXTI interrupt init*/
+  HAL_NVIC_SetPriority(EXTI2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI2_IRQn);
 
 }
 

@@ -61,8 +61,13 @@ void Error_Handler(void);
 #define RFM95W_EN_GPIO_Port GPIOA
 #define RFM95W_G0_Pin GPIO_PIN_2
 #define RFM95W_G0_GPIO_Port GPIOA
+#define RFM95W_G0_EXTI_IRQn EXTI2_IRQn
 #define RFM95W_RST_Pin GPIO_PIN_3
 #define RFM95W_RST_GPIO_Port GPIOA
+#define RFM95W_CS_Pin GPIO_PIN_4
+#define RFM95W_CS_GPIO_Port GPIOA
+#define PWR_SW2_Pin GPIO_PIN_1
+#define PWR_SW2_GPIO_Port GPIOB
 #define LED_Pin GPIO_PIN_12
 #define LED_GPIO_Port GPIOC
 

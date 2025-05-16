@@ -26,7 +26,9 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdint.h>
+#include <stdio.h>
 #include <string.h>
+#include "rfm95w.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -100,8 +102,18 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim15);
 
   // Send Message To Debug UART
-  g_main_lpuart_buffer_len = sprintf(&g_main_lpuart_buffer[0], "Hello\r\n");
+  g_main_lpuart_buffer_len = sprintf(&g_main_lpuart_buffer[0], "HelloWorld\r\n");
   HAL_UART_Transmit(&hlpuart1, &g_main_lpuart_buffer[0], g_main_lpuart_buffer_len, 100U);
+
+  // Initialise the RFM95W
+  rfm95w_init(&hspi1);
+
+
+  // Send Test Packet
+  rfm95w_transmit_packet(g_main_lpuart_buffer_len, &g_main_lpuart_buffer[0]);
+
+  // start listening
+  rfm95w_listen_for_packets();
 
   /* USER CODE END 2 */
 
@@ -177,6 +189,20 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	if (htim->Instance == TIM15)
 	{
 		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	}
+}
+
+/**
+  * @brief  EXTI line detection callback.
+  * @param  GPIO_Pin Specifies the port pin connected to corresponding EXTI line.
+  * @retval None
+  */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	if (GPIO_Pin == RFM95W_G0_GPIO_PIN)
+	{
+		// Interrupt from RFM95W
+		rfm95w_process_interrupt();
 	}
 }
 
