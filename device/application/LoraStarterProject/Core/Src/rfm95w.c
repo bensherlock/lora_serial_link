@@ -649,7 +649,12 @@ int32_t rfm95w_process_interrupt()
 	{
 		g_packet_received = 1;
 
-		dbg_output_write_buffer(g_receive_buffer_length, &g_receive_buffer[0]);
+		// debug
+		dbg_output_write_str("Packet:");
+		//dbg_output_write_buffer(g_receive_buffer_length, &g_receive_buffer[0]);
+		// Or output as hex encoded values
+		dbg_output_write_hex_encoded_csv_buffer(g_receive_buffer_length, &g_receive_buffer[0]);
+		dbg_output_write_str("\r\n");
 	}
 
 	 // start listening

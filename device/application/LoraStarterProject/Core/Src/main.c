@@ -45,14 +45,16 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-#define MAIN_LPUART_BUFFER_MAXLEN	(128)
+#define MAIN_STRING_BUFFER_MAXLEN	(1024)
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-static uint8_t g_main_lpuart_buffer[MAIN_LPUART_BUFFER_MAXLEN] = {0U};
-static uint32_t g_main_lpuart_buffer_len = 0U;
+static uint8_t g_main_string_buffer[MAIN_STRING_BUFFER_MAXLEN] = {0U}; /* Buffer for formatted strings */
+static uint32_t g_main_string_buffer_length = 0U;
+
+static volatile uint32_t g_main_half_second_counter = 0U; /*!< Counter incremented by TIM15 callback at 2Hz */
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -96,28 +98,28 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM15_Init();
-  MX_LPUART1_UART_Init();
   MX_SPI1_Init();
   MX_USART1_UART_Init();
+  MX_LPUART1_UART_Init();
   /* USER CODE BEGIN 2 */
-  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1U);
+  HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, 1U); // Light the LED
 
-  HAL_TIM_Base_Start_IT(&htim15);
+  HAL_TIM_Base_Start_IT(&htim15); // Start the timer TIM15 which will toggle the LED
 
-  dbg_output_init(&hlpuart1);
+  dbg_output_init(&hlpuart1); // Initialise the debug stream using LPUART1
 
   // Send Message To Debug UART
   dbg_output_write_str("HelloWorld\r\n");
-  g_main_lpuart_buffer_len = sprintf(&g_main_lpuart_buffer[0], "HelloWorld\r\n");
-  //HAL_UART_Transmit(&hlpuart1, &g_main_lpuart_buffer[0], g_main_lpuart_buffer_len, 100U);
+
 
   // Initialise the RFM95W
   rfm95w_init(&hspi1);
 
 
   // Send Test Packet
-  g_main_lpuart_buffer_len = sprintf(&g_main_lpuart_buffer[0], "HelloWorld\r\n");
-  rfm95w_transmit_packet(g_main_lpuart_buffer_len, &g_main_lpuart_buffer[0]);
+  g_main_string_buffer_length = sprintf(&g_main_string_buffer[0], "HelloWorld\r\n");
+  rfm95w_transmit_packet(g_main_string_buffer_length, &g_main_string_buffer[0]);
+
 
   // start listening
   rfm95w_listen_for_packets();
@@ -195,6 +197,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	if (htim->Instance == TIM15)
 	{
+		g_main_half_second_counter++; // Increment the 2Hz counter
 		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 	}
 }
@@ -210,6 +213,19 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 	{
 		// Interrupt from RFM95W
 		rfm95w_process_interrupt();
+	}
+}
+
+/**
+  * @brief Tx Transfer completed callback.
+  * @param huart UART handle.
+  * @retval None
+  */
+void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+{
+	if (huart->Instance == LPUART1)
+	{
+		dbg_output_process_on_interrupt();
 	}
 }
 
