@@ -32,8 +32,8 @@ Downloads: [https://learn.adafruit.com/adafruit-rfm69hcw-and-rfm96-rfm95-rfm98-l
 ## Hardware Configuration
 
 ### Clocks
-4MHz HSE
-32.768kHz LSE
++ 4MHz HSE
++ 32.768kHz LSE
 
 ### Pin Configurations
 + LED (PC12)
@@ -48,10 +48,13 @@ Modem/Serial RS232
 
 ## Timers
 TIM15 80Mhz Clock. /1000 prescaler. 4000-1 counter value. Result == 2Hz. 
+
 Calling HAL_TIM_PeriodElapsedCallback to Toggle LED.
 
 ## UARTS
-LPUART1 115200N8 baud.
++ LPUART1 115200 baud 8N1.
++ UART1 9600 baud 8N1.
 
+Calling HAL_UART_TxCpltCallback on Tx complete - use this to get next byte in fifo for transmission. 
 
- 
+Calling HAL_UART_RxCpltCallback on Rx complete - use this to put the received byte into the fifo for processing.
