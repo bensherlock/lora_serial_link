@@ -8,6 +8,9 @@ The Starter Project is for learning and experimenting with different approaches 
 ## To Be Added: Completed Project.
 Only once the workshop is complete. 
 
+## Note: Problems with STM32CubeIDE not Generating Code? 
+The MyST button has been removed from the main menu bar. It is now in Help->STM32CubeUpdate->Connection to MyST. Then "Enter MyST account information".
+Without logging into MyST this way the IDE will not download the necessary packages to auto generate code after altering the .ioc file. 
 
 ## Hardware Modules
 
