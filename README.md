@@ -2,6 +2,13 @@
 Transparent Wireless Serial Link using LoRa.
 
 
+## Starter Project
+The Starter Project is for learning and experimenting with different approaches to creating a Transparent Serial Link and forms the base for a training workshop. 
+
+## To Be Added: Completed Project.
+Only once the workshop is complete. 
+
+
 ## Hardware Modules
 
 ### Microcontroller 
