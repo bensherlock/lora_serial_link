@@ -363,6 +363,16 @@ static volatile int32_t rfm95w_read_burst(const uint8_t register_address, const 
 static volatile int32_t rfm95w_read_single(const uint8_t register_address, volatile uint8_t* data_byte);
 
 
+/**
+ * @brief   Receive a LoRa Packet into the buffer with the RFM95W module.
+ *
+ * @param[in]	  buffer_length	length of the buffer to transmit.
+ * @param[in]	  buffer buffer to transmit.
+ * @return        0 for success or Error
+ */
+static volatile int32_t rfm95w_receive_packet(uint8_t max_buffer_length, volatile uint8_t buffer[max_buffer_length], volatile uint8_t* received_buffer_length);
+
+
 
 /*
  * Public: Function Definitions
@@ -631,6 +641,58 @@ int32_t rfm95w_receive_packet(uint8_t max_buffer_length, volatile uint8_t buffer
 
 
 /**
+ * @brief   Has a packet been received by the RFM95W module.
+ *
+ * @param	      None
+ * @return        1 for packet received, 0 for no packet received, or Error
+ */
+int32_t rfm95w_is_packet_received()
+{
+	return g_packet_received;
+}
+
+/**
+ * @brief   Clear the last packet received flag.
+ *
+ * @param	      None
+ * @return        0 for success, or Error
+ */
+int32_t rfm95w_clear_is_packet_received()
+{
+	g_packet_received = 0;
+
+	return 0;
+}
+
+/**
+ * @brief   Copy the last received LoRa Packet into the buffer.
+ *
+ * @param[in]	  max_buffer_length	length of the buffer to copy into.
+ * @param[out]	  buffer buffer to copy into.
+ * @param[out]	  received_buffer_length size of packet copied into the buffer
+ * @return        0 for success or Error
+ */
+int32_t rfm95w_get_received_packet(uint8_t max_buffer_length, volatile uint8_t buffer[max_buffer_length], volatile uint8_t* received_buffer_length)
+{
+	if (g_packet_received)
+	{
+		if (max_buffer_length < g_receive_buffer_length)
+		{
+			// Error
+			return -1;
+		}
+		else
+		{
+			memcpy(&buffer[0], &g_receive_buffer[0], g_receive_buffer_length);
+			return 0;
+		}
+	}
+	return -1;
+}
+
+
+
+/**
  * @brief   Process Interrupts from RFM95W module.
  *
  * @param         None
@@ -644,17 +706,26 @@ int32_t rfm95w_process_interrupt()
 		return -1;
 	}
 
+	// Store into the receive buffer for user to get.
 	rfm95w_receive_packet(g_receive_buffer_max_length, g_receive_buffer, &g_receive_buffer_length);
 	if (g_receive_buffer_length > 0)
 	{
 		g_packet_received = 1;
 
+#if 0
 		// debug
-		dbg_output_write_str("Packet:");
-		//dbg_output_write_buffer(g_receive_buffer_length, &g_receive_buffer[0]);
+		char strbuffer[10];
+		uint32_t strbufferlen = sprintf("%d", g_receive_buffer_length);
+
+		dbg_output_write_str(" Packet[");
+		dbg_output_write_buffer(strbufferlen, &strbuffer[0]);
+		dbg_output_write_str("]:");
+
+		dbg_output_write_buffer(g_receive_buffer_length, &g_receive_buffer[0]);
 		// Or output as hex encoded values
-		dbg_output_write_hex_encoded_csv_buffer(g_receive_buffer_length, &g_receive_buffer[0]);
+		//dbg_output_write_hex_encoded_csv_buffer(g_receive_buffer_length, &g_receive_buffer[0]);
 		dbg_output_write_str("\r\n");
+#endif
 	}
 
 	 // start listening

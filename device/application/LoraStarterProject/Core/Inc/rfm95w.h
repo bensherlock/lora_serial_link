@@ -89,14 +89,34 @@ int32_t rfm95w_transmit_packet(uint8_t buffer_length, uint8_t buffer[buffer_leng
  */
 int32_t rfm95w_listen_for_packets();
 
+
+
 /**
- * @brief   Transmit a LoRa Packet with the RFM95W module.
+ * @brief   Has a packet been received by the RFM95W module.
  *
- * @param[in]	  buffer_length	length of the buffer to transmit.
- * @param[in]	  buffer buffer to transmit.
+ * @param	      None
+ * @return        1 for packet received, 0 for no packet received, or Error
+ */
+int32_t rfm95w_is_packet_received();
+
+/**
+ * @brief   Clear the last packet received flag.
+ *
+ * @param	      None
+ * @return        0 for success, or Error
+ */
+int32_t rfm95w_clear_is_packet_received();
+
+/**
+ * @brief   Copy the last received LoRa Packet into the buffer.
+ *
+ * @param[in]	  max_buffer_length	length of the buffer to copy into.
+ * @param[out]	  buffer buffer to copy into.
+ * @param[out]	  received_buffer_length size of packet copied into the buffer
  * @return        0 for success or Error
  */
-int32_t rfm95w_receive_packet(uint8_t max_buffer_length, volatile uint8_t buffer[max_buffer_length], volatile uint8_t* received_buffer_length);
+int32_t rfm95w_get_received_packet(uint8_t max_buffer_length, volatile uint8_t buffer[max_buffer_length], volatile uint8_t* received_buffer_length);
+
 
 
 /**
