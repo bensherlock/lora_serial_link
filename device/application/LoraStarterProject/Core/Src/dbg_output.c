@@ -77,8 +77,8 @@ static uint32_t g_transmit_length = 0;
 
 
 /* Non-blocking UART transmit */
-static fifo_uint8_state_t g_transmit_fifo = {0};
-static uint8_t g_transmit_fifo_buffer[TRANSMIT_FIFO_BUFFER_SIZE] = {0};
+static volatile fifo_uint8_state_t g_transmit_fifo = {0};
+static volatile uint8_t g_transmit_fifo_buffer[TRANSMIT_FIFO_BUFFER_SIZE] = {0};
 static volatile uint8_t g_transmit_fifo_in_process = 0;
 
 /*
