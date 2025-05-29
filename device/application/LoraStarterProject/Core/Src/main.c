@@ -166,14 +166,18 @@ int main(void)
   // Send Message To Debug UART
   dbg_output_write_str("HelloWorld\r\n");
 
+  //g_main_string_buffer_length = sprintf(&g_main_string_buffer[0], "HelloWorld\r\n");
+  //HAL_UART_Transmit(&huart1, g_main_string_buffer, g_main_string_buffer_length, 100);
+
 
   // Initialise the RFM95W
   rfm95w_init(&hspi1);
 
 
   // Send Test Packet
-  g_main_string_buffer_length = sprintf(&g_main_string_buffer[0], "HelloWorld\r\n");
-  rfm95w_transmit_packet(g_main_string_buffer_length, &g_main_string_buffer[0]);
+
+  //g_main_string_buffer_length = sprintf(&g_main_string_buffer[0], "HelloWorld\r\n");
+  //rfm95w_transmit_packet(g_main_string_buffer_length, &g_main_string_buffer[0]);
 
 
   // start listening
@@ -190,6 +194,19 @@ int main(void)
   g_lora_packet_to_transmit.header.sequence_number = g_lora_sequence_number;
   g_lora_sequence_number++; // increment for the next packet
 
+  /*
+  // Send test packet
+  g_lora_packet_to_transmit.payload[0] = 'H';
+  g_lora_packet_to_transmit.payload[1] = 'i';
+  g_lora_packet_to_transmit.payload[2] = 'H';
+  g_lora_packet_to_transmit.payload[3] = 'i';
+  g_lora_packet_to_transmit.payload[4] = '\r';
+  g_lora_packet_to_transmit.payload[5] = '\n';
+  g_lora_packet_to_transmit.payload_length = 6;
+
+  rfm95w_transmit_packet(sizeof(lora_packet_header_t) + g_lora_packet_to_transmit.payload_length, &g_lora_packet_to_transmit);
+  /*
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -199,27 +216,86 @@ int main(void)
 
 	  // 1
 	  // Check for Received packet flag
-	  // Get the received packet into the packet structure (set the payload length)
-	  // clear the received packet flag
-	  // check the received packet header - our address or broadcast address
-	  // If is for us then put the payload bytes into the serial transmit fifo
-	  // if serial transmit is not currently in progress then kick it off
+	  if (rfm95w_is_packet_received() == 1)
+	  {
+		  // Get the received packet into the packet structure (set the payload length)
+		  uint32_t packet_received_length = 0;
+		  rfm95w_get_received_packet(sizeof(lora_packet_t), &g_lora_packet_received, &packet_received_length);
 
+		  // clear the received packet flag
+		  rfm95w_clear_is_packet_received();
+
+		  // Check it is a valid lora packet
+		  if (packet_received_length > 0)
+		  {
+			  // Set the payload length field
+			  g_lora_packet_received.payload_length = packet_received_length - sizeof(lora_packet_header_t);
+
+			  // check the received packet header - our address or broadcast address
+			  if ((g_lora_packet_received.header.destination_address == g_lora_source_address) ||
+					  (g_lora_packet_received.header.destination_address == g_lora_broadcast_address) )
+			  {
+				// If is for us then put the payload bytes into the serial transmit fifo
+				for (uint32_t idx = 0; idx < g_lora_packet_received.payload_length; idx++)
+				{
+					fifo_uint8_write_one(&g_uart_transmit_fifo, g_lora_packet_received.payload[idx]);
+				}
+				  // if serial transmit is not currently in progress then kick it off
+				if (g_uart_transmit_fifo_in_process == 0)
+				{
+					// Send the next byte
+					uint8_t next_byte = 0;
+					fifo_uint8_read_one(&g_uart_transmit_fifo, &next_byte);
+					HAL_UART_Transmit_IT(&huart1, &next_byte, 1);
+					g_uart_transmit_fifo_in_process = 1;
+				}
+			  }
+		  }
+	  }
 
 	  //2
 	  // Check for serial bytes in the receive fifo
-	  // take each byte and add into current transmit packet payload
-	  // if we have reached the max payload length then transmit the packet and then clear the structures and start afresh
+	  while (fifo_uint8_is_empty(&g_uart_receive_fifo) == 0)
+	  {
+		  // take each byte and add into current transmit packet payload
+		  uint8_t next_byte = 0;
+		  fifo_uint8_read_one(&g_uart_receive_fifo, &next_byte);
+
+		  g_lora_packet_to_transmit.payload[g_lora_packet_to_transmit.payload_length] = next_byte;
+		  g_lora_packet_to_transmit.payload_length++;
+
+		  // if we have reached the max payload length then transmit the packet and then clear the structures and start afresh
+		  if (g_lora_packet_to_transmit.payload_length >= LORA_PACKET_MAX_PAYLOAD)
+		  {
+			  rfm95w_transmit_packet(sizeof(lora_packet_header_t) + g_lora_packet_to_transmit.payload_length, &g_lora_packet_to_transmit);
+
+			  // Clear and start the packet again
+			  g_lora_packet_to_transmit.payload_length = 0;
+			  g_lora_packet_to_transmit.header.source_address = g_lora_source_address;
+			  g_lora_packet_to_transmit.header.destination_address = g_lora_destination_address;
+			  g_lora_packet_to_transmit.header.sequence_number = g_lora_sequence_number;
+			  g_lora_sequence_number++; // increment for the next packet
+		  }
+	  }
 
 
 	  // 3
 	  // Check for timeout since last serial byte received.
-	  // If we currently have a packet becing assembled for transmission then transmit the packet and then clear the structures and start afresh
+	  if (g_main_millisecond_counter >= (g_main_last_received_serial_byte_time_ms + g_lora_packet_transmit_serial_timeout))
+	  {
+		  // If we currently have a packet being assembled for transmission then transmit the packet and then clear the structures and start afresh
+		  if (g_lora_packet_to_transmit.payload_length > 0)
+		  {
+			  rfm95w_transmit_packet(sizeof(lora_packet_header_t) + g_lora_packet_to_transmit.payload_length, &g_lora_packet_to_transmit);
 
-
-
-
-
+			  // Clear and start the packet again
+			  g_lora_packet_to_transmit.payload_length = 0;
+			  g_lora_packet_to_transmit.header.source_address = g_lora_source_address;
+			  g_lora_packet_to_transmit.header.destination_address = g_lora_destination_address;
+			  g_lora_packet_to_transmit.header.sequence_number = g_lora_sequence_number;
+			  g_lora_sequence_number++; // increment for the next packet
+		  }
+	  }
 
 
 
@@ -355,7 +431,7 @@ void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
   */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	if (huart->Instance == USART1) // BS: USing the other port as shortage of cables
+	if (huart->Instance == USART1)
 	{
 		// just received data into g_main_serial_byte_to_receive
 		// put into fifo so it can be processed by the main loop to construc a lora packet to transmit.

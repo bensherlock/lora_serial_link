@@ -21,6 +21,7 @@
 #include "stm32l4xx_hal_spi.h"
 
 #include <stdint.h>
+#include <stdlib.h>
 
 
 /*
@@ -317,7 +318,7 @@ static SPI_HandleTypeDef* g_spi_handle = 0;		/*!< SPI Handle */
 static volatile uint8_t g_regval = 0;
 
 static volatile uint8_t g_receive_buffer[MAX_SPI_BUFFER_LENGTH] = {0};
-static volatile uint8_t g_receive_buffer_length = 0;
+static volatile uint32_t g_receive_buffer_length = 0;
 static volatile uint8_t g_packet_received = 0;
 
 /*
@@ -370,7 +371,7 @@ static volatile int32_t rfm95w_read_single(const uint8_t register_address, volat
  * @param[in]	  buffer buffer to transmit.
  * @return        0 for success or Error
  */
-static volatile int32_t rfm95w_receive_packet(uint8_t max_buffer_length, volatile uint8_t buffer[max_buffer_length], volatile uint8_t* received_buffer_length);
+static volatile int32_t rfm95w_receive_packet(uint32_t max_buffer_length, volatile uint8_t buffer[max_buffer_length], volatile uint32_t* received_buffer_length);
 
 
 
@@ -488,7 +489,7 @@ int32_t rfm95w_init(SPI_HandleTypeDef* spi_handle)
  * @param[in]	  buffer buffer to transmit.
  * @return        0 for success or Error
  */
-int32_t rfm95w_transmit_packet(uint8_t buffer_length, uint8_t buffer[buffer_length])
+int32_t rfm95w_transmit_packet(uint32_t buffer_length, uint8_t buffer[buffer_length])
 {
 	if (g_initialised == 0)
 	{
@@ -537,6 +538,8 @@ int32_t rfm95w_transmit_packet(uint8_t buffer_length, uint8_t buffer[buffer_leng
 
 	// Back into Standby
 	rfm95w_write_single(RFM95W_REG_01_OP_MODE, RFM95W_REGVAL_01_MODE_STDBY);
+
+	rfm95w_listen_for_packets(); // return to listening for packets
 
 	return (0);
 }
@@ -587,7 +590,7 @@ int32_t rfm95w_listen_for_packets()
  * @param[out]	  received_buffer_length count of bytes received.
  * @return        0 for success or Error
  */
-int32_t rfm95w_receive_packet(uint8_t max_buffer_length, volatile uint8_t buffer[max_buffer_length], volatile uint8_t* received_buffer_length)
+int32_t rfm95w_receive_packet(uint32_t max_buffer_length, volatile uint8_t buffer[max_buffer_length], volatile uint32_t* received_buffer_length)
 {
 	if (g_initialised == 0)
 	{
@@ -672,7 +675,7 @@ int32_t rfm95w_clear_is_packet_received()
  * @param[out]	  received_buffer_length size of packet copied into the buffer
  * @return        0 for success or Error
  */
-int32_t rfm95w_get_received_packet(uint8_t max_buffer_length, volatile uint8_t buffer[max_buffer_length], volatile uint8_t* received_buffer_length)
+int32_t rfm95w_get_received_packet(uint32_t max_buffer_length, volatile uint8_t buffer[max_buffer_length], volatile uint32_t* received_buffer_length)
 {
 	if (g_packet_received)
 	{
@@ -684,6 +687,7 @@ int32_t rfm95w_get_received_packet(uint8_t max_buffer_length, volatile uint8_t b
 		else
 		{
 			memcpy(&buffer[0], &g_receive_buffer[0], g_receive_buffer_length);
+			*received_buffer_length = g_receive_buffer_length;
 			return 0;
 		}
 	}

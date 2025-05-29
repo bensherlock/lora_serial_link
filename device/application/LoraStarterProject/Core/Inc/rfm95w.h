@@ -77,7 +77,7 @@ int32_t rfm95w_init(SPI_HandleTypeDef* spi_handle);
  * @param[in]	  buffer buffer to transmit.
  * @return        0 for success or Error
  */
-int32_t rfm95w_transmit_packet(uint8_t buffer_length, uint8_t buffer[buffer_length]);
+int32_t rfm95w_transmit_packet(uint32_t buffer_length, uint8_t buffer[buffer_length]);
 
 
 
@@ -115,7 +115,7 @@ int32_t rfm95w_clear_is_packet_received();
  * @param[out]	  received_buffer_length size of packet copied into the buffer
  * @return        0 for success or Error
  */
-int32_t rfm95w_get_received_packet(uint8_t max_buffer_length, volatile uint8_t buffer[max_buffer_length], volatile uint8_t* received_buffer_length);
+int32_t rfm95w_get_received_packet(uint32_t max_buffer_length, volatile uint8_t buffer[max_buffer_length], volatile uint32_t* received_buffer_length);
 
 
 
